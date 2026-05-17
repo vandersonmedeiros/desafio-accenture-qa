@@ -9,63 +9,63 @@ import java.util.Map;
 
 public class BookStoreClient {
 
-    private final String baseUrl = "https://demoqa.com";
+    private static final String BASE_URL = "https://demoqa.com";
 
-    public Response criarUsuario(String username, String password) {
-        Map<String, String> payload = new HashMap<>();
-        payload.put("userName", username);
-        payload.put("password", password);
+    public Response criarUsuario(String userName, String userPassword) {
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("userName", userName);
+        requestPayload.put("password", userPassword);
 
         return RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(payload)
-                .post(baseUrl + "/Account/v1/User");
+                .body(requestPayload)
+                .post(BASE_URL + "/Account/v1/User");
     }
 
-    public Response gerarToken(String username, String password) {
-        Map<String, String> payload = new HashMap<>();
-        payload.put("userName", username);
-        payload.put("password", password);
+    public Response gerarToken(String userName, String userPassword) {
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("userName", userName);
+        requestPayload.put("password", userPassword);
 
         return RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(payload)
-                .post(baseUrl + "/Account/v1/GenerateToken");
+                .body(requestPayload)
+                .post(BASE_URL + "/Account/v1/GenerateToken");
     }
 
-    public Response validarAutorizacao(String username, String password) {
-        Map<String, String> payload = new HashMap<>();
-        payload.put("userName", username);
-        payload.put("password", password);
+    public Response validarAutorizacao(String userName, String userPassword) {
+        Map<String, String> requestPayload = new HashMap<>();
+        requestPayload.put("userName", userName);
+        requestPayload.put("password", userPassword);
 
         return RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(payload)
-                .post(baseUrl + "/Account/v1/Authorized");
+                .body(requestPayload)
+                .post(BASE_URL + "/Account/v1/Authorized");
     }
 
     public Response listarLivros() {
         return RestAssured.given()
                 .contentType(ContentType.JSON)
-                .get(baseUrl + "/BookStore/v1/Books");
+                .get(BASE_URL + "/BookStore/v1/Books");
     }
 
-    public Response alugarLivro(String userId, String isbn, String token) {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("userId", userId);
-        payload.put("collectionOfIsbns", Collections.singletonList(Collections.singletonMap("isbn", isbn)));
+    public Response alugarLivro(String userId, String bookIsbn, String accessToken) {
+        Map<String, Object> requestPayload = new HashMap<>();
+        requestPayload.put("userId", userId);
+        requestPayload.put("collectionOfIsbns", Collections.singletonList(Collections.singletonMap("isbn", bookIsbn)));
 
         return RestAssured.given()
-                .header("Authorization", "Bearer " + token)
+                .header("Authorization", "Bearer " + accessToken)
                 .contentType(ContentType.JSON)
-                .body(payload)
-                .post(baseUrl + "/BookStore/v1/Books");
+                .body(requestPayload)
+                .post(BASE_URL + "/BookStore/v1/Books");
     }
 
-    public Response consultarPerfil(String userId, String token) {
+    public Response consultarPerfil(String userId, String accessToken) {
         return RestAssured.given()
-                .header("Authorization", "Bearer " + token)
+                .header("Authorization", "Bearer " + accessToken)
                 .contentType(ContentType.JSON)
-                .get(baseUrl + "/Account/v1/User/" + userId);
+                .get(BASE_URL + "/Account/v1/User/" + userId);
     }
 }
