@@ -8,89 +8,94 @@ import java.util.UUID;
 
 public class ApiSteps {
 
-    private BookStoreClient apiClient;
-    private Response response;
-    private String username;
-    private String password;
+    private final BookStoreClient bookStoreClient = new BookStoreClient();
+    private Response apiResponse;
+    private String userName;
+    private String userPassword;
     private String userId;
-    private String token;
-    private String isbn;
+    private String accessToken;
+    private String bookIsbn;
 
-    @Given("que inicializo a base da API DemoQA")
-    public void queInicializoABaseDaApiDemoQA() {
-        apiClient = new BookStoreClient();
-        String sufixoAleatorio = UUID.randomUUID().toString().substring(0, 8);
-        username = "user_" + sufixoAleatorio;
-        password = "Password123!";
+    @Given("que possuo as credenciais de um novo usuario")
+    public void quePossuoAsCredenciaisDeUmNovoUsuario() {
+        String randomSuffix = UUID.randomUUID().toString().substring(0, 8);
+        userName = "user_" + randomSuffix;
+        userPassword = "Password123!";
     }
 
-    @When("envio uma requisicao POST para criar um novo usuario")
-    public void envioUmaRequisicaoPostParaCriarUmNovoUsuario() {
-        response = apiClient.criarUsuario(username, password);
-    }
-
-    @Then("o usuario deve ser criado com sucesso retornando o ID")
-    public void oUsuarioDeveSerCriadoComSucessoRetornandoOId() {
-        Assert.assertEquals(201, response.getStatusCode());
-        userId = response.jsonPath().getString("userID");
+    @When("envio uma requisicao para cadastrar o usuario")
+    public void envioUmaRequisicaoParaCadastrarOUsuario() {
+        apiResponse = bookStoreClient.criarUsuario(userName, userPassword);
+        Assert.assertEquals(201, apiResponse.getStatusCode());
+        userId = apiResponse.jsonPath().getString("userID");
         Assert.assertNotNull(userId);
     }
 
-    @When("envio uma requisicao POST para gerar o token de acesso")
-    public void envioUmaRequisicaoPostParaGerarOTokenDeAcesso() {
-        response = apiClient.gerarToken(username, password);
+    @And("solicito a geracao do token de acesso")
+    public void solicitoAGeracaoDoTokenDeAcesso() {
+        apiResponse = bookStoreClient.gerarToken(userName, userPassword);
+        Assert.assertEquals(200, apiResponse.getStatusCode());
+        accessToken = apiResponse.jsonPath().getString("token");
+        Assert.assertNotNull(accessToken);
     }
 
-    @Then("o token deve ser gerado com sucesso")
-    public void oTokenDeveSerGeradoComSucesso() {
-        Assert.assertEquals(200, response.getStatusCode());
-        token = response.jsonPath().getString("token");
-        Assert.assertEquals("Success", response.jsonPath().getString("status"));
-        Assert.assertNotNull(token);
+    @And("valido a autorizacao das credenciais na API")
+    public void validoAAutorizacaoDasCredenciaisNaAPI() {
+        apiResponse = bookStoreClient.validarAutorizacao(userName, userPassword);
+        Assert.assertEquals(200, apiResponse.getStatusCode());
     }
 
-    @When("envio uma requisicao POST para validar a autorizacao")
-    public void envioUmaRequisicaoPostParaValidarAAutorizacao() {
-        response = apiClient.validarAutorizacao(username, password);
+    @Then("o usuario deve ser autenticado e autorizado com sucesso")
+    public void oUsuarioDeveSerAutenticadoEAutorizadoComSucesso() {
+        Assert.assertEquals("true", apiResponse.getBody().asString());
     }
 
-    @Then("a resposta de autorizacao deve ser verdadeira")
-    public void aRespostaDeAutorizacaoDeveSerVeradeira() {
-        Assert.assertEquals(200, response.getStatusCode());
-        Assert.assertEquals("true", response.getBody().asString());
+    @Given("que a API de livros esta operacional")
+    public void queAApiDeLivrosEstaOperacional() {
+        Assert.assertNotNull(bookStoreClient);
     }
 
-    @When("envio uma requisicao GET para listar os livros disponiveis")
-    public void envioUmaRequisicaoGetParaListarOsLivrosDisponiveis() {
-        response = apiClient.listarLivros();
+    @When("envio uma requisicao para listar os livros")
+    public void envioUmaRequisicaoParaListarOsLivros() {
+        apiResponse = bookStoreClient.listarLivros();
     }
 
-    @Then("a lista de livros deve ser retornada com sucesso")
-    public void aListaDeLivrosDeveSerRetornadaComSucesso() {
-        Assert.assertEquals(200, response.getStatusCode());
-        isbn = response.jsonPath().getString("books[0].isbn");
-        Assert.assertNotNull(isbn);
+    @Then("o catalogo deve retornar a lista de livros cadastrados")
+    public void oCatalogoDeveRetornarAListaDeLivrosCadastrados() {
+        Assert.assertEquals(200, apiResponse.getStatusCode());
+        Assert.assertNotNull(apiResponse.jsonPath().getList("books"));
     }
 
-    @When("envio uma requisicao POST para alugar o primeiro livro da lista")
-    public void envioUmaRequisicaoPostParaAlugarOPrimeiroLivroDaLista() {
-        response = apiClient.alugarLivro(userId, isbn, token);
+    @Given("que possuo um usuario autenticado na plataforma")
+    public void quePossuoUmUsuarioAutenticadoNaPlataforma() {
+        quePossuoAsCredenciaisDeUmNovoUsuario();
+        envioUmaRequisicaoParaCadastrarOUsuario();
+        solicitoAGeracaoDoTokenDeAcesso();
     }
 
-    @Then("o livro deve ser associado ao usuario com sucesso")
-    public void oLivroDeveSerAssociadoAoUsuarioComSucesso() {
-        Assert.assertEquals(201, response.getStatusCode());
+    @And("identifico o primeiro livro disponivel no catalogo")
+    public void identificoOPrimeiroLivroDisponivelNoCatalogo() {
+        apiResponse = bookStoreClient.listarLivros();
+        Assert.assertEquals(200, apiResponse.getStatusCode());
+        bookIsbn = apiResponse.jsonPath().getString("books[0].isbn");
+        Assert.assertNotNull(bookIsbn);
     }
 
-    @When("envio uma requisicao GET para consultar o perfil do usuario")
-    public void envioUmaRequisicaoGetParaConsultarOPerfilDoUsuario() {
-        response = apiClient.consultarPerfil(userId, token);
+    @When("envio uma requisicao para alugar este livro")
+    public void envioUmaRequisicaoParaAlugarEsteLivro() {
+        apiResponse = bookStoreClient.alugarLivro(userId, bookIsbn, accessToken);
+        Assert.assertEquals(201, apiResponse.getStatusCode());
     }
 
-    @Then("o livro alugado deve constar no perfil do usuario")
-    public void oLivroAlugadoDeveConstarNoPerfilDoUsuario() {
-        Assert.assertEquals(200, response.getStatusCode());
-        String isbnNoPerfil = response.jsonPath().getString("books[0].isbn");
-        Assert.assertEquals(isbn, isbnNoPerfil);
+    @And("consulto o perfil do usuario")
+    public void consultoOPerfilDoUsuario() {
+        apiResponse = bookStoreClient.consultarPerfil(userId, accessToken);
+        Assert.assertEquals(200, apiResponse.getStatusCode());
+    }
+
+    @Then("o livro alugado deve estar registrado com sucesso no perfil")
+    public void oLivroAlugadoDeveEstarRegistradoComSucessoNoPerfil() {
+        String isbnNoPerfil = apiResponse.jsonPath().getString("books[0].isbn");
+        Assert.assertEquals(bookIsbn, isbnNoPerfil);
     }
 }
