@@ -1,6 +1,7 @@
 package pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -20,6 +21,7 @@ public class PracticeFormPage {
     private final By uploadPictureInput = By.id("uploadPicture");
     private final By submitButton = By.id("submit");
     private final By successModal = By.className("modal-content");
+    private final By closeLargeModalBtn = By.id("closeLargeModal");
 
     public PracticeFormPage(WebDriver driver) {
         this.driver = driver;
@@ -71,5 +73,10 @@ public class PracticeFormPage {
 
     public boolean modalSucessoExibido() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(successModal)).isDisplayed();
+    }
+
+    public void fecharPopupModal() {
+        WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(closeLargeModalBtn));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
     }
 }

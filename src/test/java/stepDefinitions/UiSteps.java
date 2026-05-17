@@ -9,11 +9,15 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import pages.BrowserWindowsPage;
+import pages.HomePage;
 import pages.PracticeFormPage;
+import java.util.UUID;
+import java.util.Random;
 
 public class UiSteps {
 
     private WebDriver driver;
+    private HomePage homePage;
     private PracticeFormPage practiceFormPage;
     private BrowserWindowsPage browserWindowsPage;
 
@@ -22,7 +26,6 @@ public class UiSteps {
         WebDriverManager.chromedriver().setup();
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--headless");
-        chromeOptions.addArguments("--window-size=1920,1080");
         driver = new ChromeDriver(chromeOptions);
     }
 
@@ -33,20 +36,31 @@ public class UiSteps {
         }
     }
 
-    @Given("que navego ate a pagina do formulario de pratica")
-    public void queNavegoAteAPaginaDoFormularioDePratica() {
+    @Given("que acesso o site DemoQA na pagina inicial")
+    public void queAcessoOSiteDemoQANaPaginaInicial() {
+        homePage = new HomePage(driver);
+        homePage.acessarHomePage();
+    }
+
+    @When("escolho a opcao {string} na pagina inicial")
+    public void escolhoAOpcaoNaPaginaInicial(String nomeMenu) {
+        homePage.escolherOpcaoMenu(nomeMenu);
+    }
+
+    @And("clico no submenu {string}")
+    public void clicoNoSubmenu(String nomeSubMenu) {
+        homePage.escolherSubMenu(nomeSubMenu);
+    }
+
+    @And("preencho todo o formulario com valores aleatorios")
+    public void preenchoTodoOFormularioComValoresAleatorios() {
         practiceFormPage = new PracticeFormPage(driver);
-        practiceFormPage.navegar();
-    }
+        String randomName = "QA_" + UUID.randomUUID().toString().substring(0, 5);
+        String randomLastName = "Test_" + UUID.randomUUID().toString().substring(0, 5);
+        String randomPhone = String.format("%010d", new Random().nextInt(1000000000) + 1000000000L).substring(0, 10);
 
-    @When("preencho os campos de nome {string} e sobrenome {string}")
-    public void preenchoOsCamposDeNomeESobrenome(String firstName, String lastName) {
-        practiceFormPage.preencherNomeCompleto(firstName, lastName);
-    }
-
-    @And("seleciono o genero masculino e insiro o telefone {string}")
-    public void selecionoOGeneroMasculinoEInsiroOTelefone(String phoneNumber) {
-        practiceFormPage.selecionarGeneroEMovel(phoneNumber);
+        practiceFormPage.preencherNomeCompleto(randomName, randomLastName);
+        practiceFormPage.selecionarGeneroEMovel(randomPhone);
     }
 
     @And("realizo o upload do arquivo de texto obrigatorio")
@@ -55,28 +69,33 @@ public class UiSteps {
     }
 
     @And("clico no botao de enviar o formulario")
-    public void clicoNoBotaoDeEnviarOFormulario() {
+    public void submtoOFormulario() {
         practiceFormPage.enviarFormulario();
     }
 
-    @Then("o popup de confirmacao deve ser exibido com os dados enviados")
-    public void oPopupDeConfirmacaoDeveSerExibidoComOsDadosEnviados() {
+    @Then("garantir que um popup foi aberto apos o submit")
+    public void garantirQueUmPopupFoiAbertoAposOSubmit() {
         Assert.assertTrue(practiceFormPage.modalSucessoExibido());
     }
 
-    @Given("que navego ate a pagina de janelas do navegador")
-    public void queNavegoAteAPaginaDeJanelasDoNavegador() {
+    @And("fechar o popup")
+    public void fecharOPopup() {
+        practiceFormPage.fecharPopupModal();
+    }
+
+    @And("clico no botao new Window")
+    public void clicoNoBotaoNewWindow() {
         browserWindowsPage = new BrowserWindowsPage(driver);
-        browserWindowsPage.navegar();
+        browserWindowsPage.abrirNovaJanela();
     }
 
-    @When("clico no botao para abrir uma nova aba")
-    public void clicoNoBotaoParaAbrirUmaNovaAba() {
-        browserWindowsPage.abrirNovaAba();
+    @Then("certifico que uma nova janela foi aberta com a mensagem {string}")
+    public void certificoQueUmaNovaJanelaFoiAbertaComAMensagem(String expectedMessage) {
+        Assert.assertEquals(expectedMessage, browserWindowsPage.obterTextoDaNovaJanela());
     }
 
-    @Then("uma nova aba deve ser aberta com a mensagem {string}")
-    public void umaNovaAbaDeveSerAbertaComAMensagem(String expectedMessage) {
-        Assert.assertEquals(expectedMessage, browserWindowsPage.obterTextoDaNovaAba());
+    @And("fecho a nova janela aberta")
+    public void fechoANovaJanelaAberta() {
+        browserWindowsPage.fecharNovaJanelaERetornar();
     }
 }

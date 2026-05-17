@@ -1,7 +1,9 @@
 package pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
@@ -11,8 +13,9 @@ public class BrowserWindowsPage {
 
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private String mainWindowHandle;
 
-    private final By tabButton = By.id("tabButton");
+    private final By windowButton = By.id("windowButton");
     private final By sampleHeading = By.id("sampleHeading");
 
     public BrowserWindowsPage(WebDriver driver) {
@@ -20,16 +23,21 @@ public class BrowserWindowsPage {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
-    public void navegar() {
-        driver.get("https://demoqa.com/browser-windows");
+    public void abrirNovaJanela() {
+        mainWindowHandle = driver.getWindowHandle();
+        WebElement button = wait.until(ExpectedConditions.presenceOfElementLocated(windowButton));
+
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", button);
+
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(button)).click();
+        } catch (Exception e) {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
+        }
     }
 
-    public void abrirNovaAba() {
-        wait.until(ExpectedConditions.elementToBeClickable(tabButton)).click();
-    }
-
-    public String obterTextoDaNovaAba() {
-        String mainWindowHandle = driver.getWindowHandle();
+    public String obterTextoDaNovaJanela() {
         Set<String> allWindowHandles = driver.getWindowHandles();
         for (String windowHandle : allWindowHandles) {
             if (!windowHandle.equals(mainWindowHandle)) {
@@ -37,9 +45,11 @@ public class BrowserWindowsPage {
                 break;
             }
         }
-        String sampleHeadingText = wait.until(ExpectedConditions.visibilityOfElementLocated(sampleHeading)).getText();
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(sampleHeading)).getText();
+    }
+
+    public void fecharNovaJanelaERetornar() {
         driver.close();
         driver.switchTo().window(mainWindowHandle);
-        return sampleHeadingText;
     }
 }
