@@ -1,12 +1,9 @@
 @ui
-Feature: Preenchimento do Practice Form na DemoQA
+Feature: Formulario de Pratica
 
-  Scenario: Preencher e enviar formulario com sucesso
+  Scenario: Enviar o formulario de cadastro com sucesso
     Given que acesso o site DemoQA na pagina inicial
     When escolho a opcao "Forms" na pagina inicial
     And clico no submenu "Practice Form"
-    And preencho todo o formulario com valores aleatorios
-    And realizo o upload do arquivo de texto obrigatorio
-    And clico no botao de enviar o formulario
-    Then garantir que um popup foi aberto apos o submit
-    And fechar o popup
+    And submeto o formulario com dados validos e o anexo obrigatorio
+    Then o sistema deve confirmar o recebimento das informacoes

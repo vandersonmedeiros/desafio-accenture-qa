@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.time.Duration;
 
 public class HomePage {
@@ -25,29 +26,23 @@ public class HomePage {
     public void escolherOpcaoMenu(String nomeMenu) {
         By menuCard = By.xpath("//h5[text()='" + nomeMenu + "']/ancestor::div[contains(@class, 'top-card')]");
         WebElement card = wait.until(ExpectedConditions.elementToBeClickable(menuCard));
-
-        ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", card);
-
-        try {
-            card.click();
-        } catch (Exception e) {
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", card);
-        }
+        scrollToAndClick(card);
     }
 
     public void escolherSubMenu(String nomeSubMenu) {
         By submenu = By.xpath("//span[text()='" + nomeSubMenu + "']");
-
         WebElement item = wait.until(ExpectedConditions.visibilityOfElementLocated(submenu));
+        scrollToAndClick(item);
+    }
 
+    private void scrollToAndClick(WebElement element) {
         ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", item);
+                .executeScript("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", element);
 
         try {
-            item.click();
+            element.click();
         } catch (Exception e) {
-            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", item);
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
         }
     }
 }

@@ -6,7 +6,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 
 public class PracticeFormPage {
@@ -16,7 +18,7 @@ public class PracticeFormPage {
 
     private final By firstNameInput = By.id("firstName");
     private final By lastNameInput = By.id("lastName");
-    private final By genderMaleRadio = By.xpath("//label[@for='gender-radio-1']");
+    private final By genderMaleRadio = By.cssSelector("label[for='gender-radio-1']");
     private final By userNumberInput = By.id("userNumber");
     private final By uploadPictureInput = By.id("uploadPicture");
     private final By submitButton = By.id("submit");
@@ -39,12 +41,7 @@ public class PracticeFormPage {
 
     public void selecionarGeneroEMovel(String telefone) {
         WebElement radio = wait.until(ExpectedConditions.elementToBeClickable(genderMaleRadio));
-        try {
-            radio.click();
-        } catch (Exception e) {
-            org.openqa.selenium.JavascriptExecutor executor = (org.openqa.selenium.JavascriptExecutor) driver;
-            executor.executeScript("arguments[0].click();", radio);
-        }
+        clickElement(radio);
         driver.findElement(userNumberInput).sendKeys(telefone);
     }
 
@@ -53,7 +50,7 @@ public class PracticeFormPage {
         if (!arquivo.exists()) {
             try {
                 arquivo.createNewFile();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -61,14 +58,9 @@ public class PracticeFormPage {
     }
 
     public void enviarFormulario() {
-        WebElement botao = driver.findElement(submitButton);
+        WebElement botao = wait.until(ExpectedConditions.presenceOfElementLocated(submitButton));
         driver.switchTo().defaultContent();
-        try {
-            botao.click();
-        } catch (Exception e) {
-            org.openqa.selenium.JavascriptExecutor executor = (org.openqa.selenium.JavascriptExecutor) driver;
-            executor.executeScript("arguments[0].click();", botao);
-        }
+        clickElement(botao);
     }
 
     public boolean modalSucessoExibido() {
@@ -77,6 +69,18 @@ public class PracticeFormPage {
 
     public void fecharPopupModal() {
         WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(closeLargeModalBtn));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", btn);
+        executeJavaScript("arguments[0].click();", btn);
+    }
+
+    private void clickElement(WebElement element) {
+        try {
+            element.click();
+        } catch (Exception e) {
+            executeJavaScript("arguments[0].click();", element);
+        }
+    }
+
+    private void executeJavaScript(String script, WebElement element) {
+        ((JavascriptExecutor) driver).executeScript(script, element);
     }
 }

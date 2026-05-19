@@ -1,10 +1,9 @@
 @ui
-Feature: Automacao de Janelas do Navegador na DemoQA
+Feature: Janelas do Navegador
 
-  Scenario: Validar a abertura de nova janela
+  Scenario: Visualizar conteudo informativo em uma nova janela
     Given que acesso o site DemoQA na pagina inicial
     When escolho a opcao "Alerts, Frame & Windows" na pagina inicial
     And clico no submenu "Browser Windows"
-    And clico no botao new Window
-    Then certifico que uma nova janela foi aberta com a mensagem "This is a sample page"
-    And fecho a nova janela aberta
+    And aciono a abertura de uma nova janela
+    Then a nova janela deve exibir a mensagem "This is a sample page"
